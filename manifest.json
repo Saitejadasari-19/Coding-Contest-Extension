@@ -2,33 +2,22 @@
     "manifest_version": 3,
     "name": "Contest Detector",
     "browser_specific_settings": {
-    "gecko": {
-        "id": "contest-detector@sai.com",
-        "strict_min_version": "109.0"
-    }
-}
-    ,
+        "gecko": {
+            "id": "cs24mt005@iitdh.ac.in",
+            "strict_min_version": "109.0"
+        }
+    },
     "version": "1.0",
-    "description": "Detects programming contests on competitive programming websites.",
-    "permissions": [
-        "activeTab",
-        "scripting"
-    ],
-    "action":{
+    "description": "Shows ongoing and upcoming programming contests from all major platforms.",
+    
+    "permissions": [],
+
+    "action": {
         "default_popup": "popup.html",
         "default_icon": "icons/icon.png"
     },
-    "content_scripts": [
-        {
-            "matches": [
-                "*://*.codeforces.com/*",
-                "*://*.atcoder.jp/*",
-                "*://*.hackerrank.com/*",
-                "*://*.codechef.com/*",
-                "*://*.leetcode.com/*",
-                "*://*.geeksforgeeks.org/*"
-            ],
-            "js": ["content.js"]
-        }
+
+    "host_permissions": [
+        "https://kontests.net/api/*"
     ]
 }
