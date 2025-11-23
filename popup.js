@@ -22,42 +22,90 @@ function isUpcoming(contest) {
 
 window.onload = async () => {
     const resultDiv = document.getElementById("result");
-    resultDiv.innerHTML = "Loading contests...";
+    resultDiv.textContent = "Loading contests...";
 
-    const contests = await fetchContests();
+    let contests = [];
+    try {
+        contests = await fetchContests();
+    } catch (err) {
+        resultDiv.textContent = "Failed to load contests.";
+        console.error(err);
+        return;
+    }
 
     const ongoing = contests.filter(isOngoing);
     const upcoming = contests.filter(isUpcoming);
 
-    let html = "<h3>🔥 Ongoing Contests</h3>";
+    // Clear previous content
+    resultDiv.textContent = "";
+
+    // ---------------------------
+    // Section: Ongoing Contests
+    // ---------------------------
+
+    const ongoingHeader = document.createElement("h3");
+    ongoingHeader.textContent = "🔥 Ongoing Contests";
+    resultDiv.appendChild(ongoingHeader);
 
     if (ongoing.length === 0) {
-        html += "<p>No ongoing contests right now.</p>";
+        const p = document.createElement("p");
+        p.textContent = "No ongoing contests right now.";
+        resultDiv.appendChild(p);
     } else {
         ongoing.forEach(c => {
-            html += `
-                <div>
-                    <b>${c.name}</b> (${c.site})<br>
-                    Ends: ${formatTime(c.end_time)}<br><br>
-                </div>
-            `;
+            const div = document.createElement("div");
+
+            const title = document.createElement("b");
+            title.textContent = `${c.name} (${c.site})`;
+            div.appendChild(title);
+
+            div.appendChild(document.createElement("br"));
+
+            const end = document.createElement("span");
+            end.textContent = "Ends: " + formatTime(c.end_time);
+            div.appendChild(end);
+
+            div.appendChild(document.createElement("br"));
+            div.appendChild(document.createElement("br"));
+
+            resultDiv.appendChild(div);
         });
     }
 
-    html += "<hr><h3>⏳ Upcoming Contests</h3>";
+    // Divider
+    const hr = document.createElement("hr");
+    resultDiv.appendChild(hr);
+
+    // ---------------------------
+    // Section: Upcoming Contests
+    // ---------------------------
+
+    const upcomingHeader = document.createElement("h3");
+    upcomingHeader.textContent = "⏳ Upcoming Contests";
+    resultDiv.appendChild(upcomingHeader);
 
     if (upcoming.length === 0) {
-        html += "<p>No upcoming contests.</p>";
+        const p = document.createElement("p");
+        p.textContent = "No upcoming contests.";
+        resultDiv.appendChild(p);
     } else {
         upcoming.slice(0, 20).forEach(c => {
-            html += `
-                <div>
-                    <b>${c.name}</b> (${c.site})<br>
-                    Starts: ${formatTime(c.start_time)}<br><br>
-                </div>
-            `;
+            const div = document.createElement("div");
+
+            const title = document.createElement("b");
+            title.textContent = `${c.name} (${c.site})`;
+            div.appendChild(title);
+
+            div.appendChild(document.createElement("br"));
+
+            const start = document.createElement("span");
+            start.textContent = "Starts: " + formatTime(c.start_time);
+            div.appendChild(start);
+
+            div.appendChild(document.createElement("br"));
+            div.appendChild(document.createElement("br"));
+
+            resultDiv.appendChild(div);
         });
     }
-
-    resultDiv.innerHTML = html;
 };
