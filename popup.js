@@ -1,23 +1,10 @@
 async function fetchContests() {
-    const res = await fetch("https://kontests.net/api/v1/all");
-    return await res.json();
+    const codeForces = await fetch("https://codeforces.com/api/contest.list?gym=false");
+    return await codeForces.json();
 }
 
 function formatTime(timestamp) {
-    return new Date(timestamp).toLocaleString();
-}
-
-function isOngoing(contest) {
-    const now = Date.now();
-    const start = new Date(contest.start_time).getTime();
-    const end = new Date(contest.end_time).getTime();
-    return now >= start && now <= end;
-}
-
-function isUpcoming(contest) {
-    const now = Date.now();
-    const start = new Date(contest.start_time).getTime();
-    return start > now;
+    return new Date(timestamp).toUTCString();
 }
 
 window.onload = async () => {
@@ -33,79 +20,60 @@ window.onload = async () => {
         return;
     }
 
-    const ongoing = contests.filter(isOngoing);
-    const upcoming = contests.filter(isUpcoming);
 
     // Clear previous content
-    resultDiv.textContent = "";
+    resultDiv.textContent = "Codeforces Contests:\n\n";
+    contests.result = contests.result.filter(c => c.phase === "BEFORE");
 
-    // ---------------------------
-    // Section: Ongoing Contests
-    // ---------------------------
+    if (contests.result.length === 0) {
+        resultDiv.textContent = "No ongoing or upcoming contests.";
+        return;
+    }
+    contests.result.forEach(contest => {
+        const contestDiv = document.createElement("div");
+        contestDiv.className = "contest";
+        const title = document.createElement("h3");
+        title.textContent = contest.name;
+        contestDiv.appendChild(title);
+        const startTime = document.createElement("p");
+        startTime.textContent = `Start: ${new Date(contest.startTimeSeconds * 1000)}`;
+        const endTime = document.createElement("p");
+        endTime.textContent = `End: ${new Date((contest.startTimeSeconds + contest.durationSeconds) * 1000)}`;
+        contestDiv.appendChild(startTime);
+        contestDiv.appendChild(endTime);
+        resultDiv.appendChild(contestDiv);
+        console.log(contest);   
+    });
 
-    const ongoingHeader = document.createElement("h3");
-    ongoingHeader.textContent = "🔥 Ongoing Contests";
-    resultDiv.appendChild(ongoingHeader);
-
-    if (ongoing.length === 0) {
-        const p = document.createElement("p");
-        p.textContent = "No ongoing contests right now.";
-        resultDiv.appendChild(p);
-    } else {
-        ongoing.forEach(c => {
-            const div = document.createElement("div");
-
-            const title = document.createElement("b");
-            title.textContent = `${c.name} (${c.site})`;
-            div.appendChild(title);
-
-            div.appendChild(document.createElement("br"));
-
-            const end = document.createElement("span");
-            end.textContent = "Ends: " + formatTime(c.end_time);
-            div.appendChild(end);
-
-            div.appendChild(document.createElement("br"));
-            div.appendChild(document.createElement("br"));
-
-            resultDiv.appendChild(div);
-        });
+    const leetcodeDiv = document.getElementById("leetcode");
+    leetcodeDiv.textContent = "LeetCode contests:\n\n";
+    try {
+        const leetcodeResponse = await fetch("https://alfa-leetcode-api.onrender.com/contests/upcoming");
+        const leetcodeData = await leetcodeResponse.json();
+        if (leetcodeData.length === 0) {
+            leetcodeDiv.textContent = "No upcoming LeetCode contests.";
+        }
+        else { 
+            leetcodeData.contests.forEach(contest => {
+                const contestDiv = document.createElement("div");
+                contestDiv.className = "contest";
+                const title = document.createElement("h3");
+                title.textContent = contest.title;
+                contestDiv.appendChild(title);
+                const startTime = document.createElement("p");
+                startTime.textContent = `Start: ${formatTime(new Date(contest.originStartTime * 1000))}`;
+                const endTime = document.createElement("p");
+                endTime.textContent = `End: ${formatTime(new Date((contest.originStartTime + contest.duration) * 1000))}`;
+                contestDiv.appendChild(startTime);
+                contestDiv.appendChild(endTime);
+                leetcodeDiv.appendChild(contestDiv);
+            });
+        }
+    } catch (err) {
+        resultDiv.textContent = "Failed to load contests.";
+        console.error(err);
+        return;
     }
 
-    // Divider
-    const hr = document.createElement("hr");
-    resultDiv.appendChild(hr);
 
-    // ---------------------------
-    // Section: Upcoming Contests
-    // ---------------------------
-
-    const upcomingHeader = document.createElement("h3");
-    upcomingHeader.textContent = "⏳ Upcoming Contests";
-    resultDiv.appendChild(upcomingHeader);
-
-    if (upcoming.length === 0) {
-        const p = document.createElement("p");
-        p.textContent = "No upcoming contests.";
-        resultDiv.appendChild(p);
-    } else {
-        upcoming.slice(0, 20).forEach(c => {
-            const div = document.createElement("div");
-
-            const title = document.createElement("b");
-            title.textContent = `${c.name} (${c.site})`;
-            div.appendChild(title);
-
-            div.appendChild(document.createElement("br"));
-
-            const start = document.createElement("span");
-            start.textContent = "Starts: " + formatTime(c.start_time);
-            div.appendChild(start);
-
-            div.appendChild(document.createElement("br"));
-            div.appendChild(document.createElement("br"));
-
-            resultDiv.appendChild(div);
-        });
-    }
-};
+}
